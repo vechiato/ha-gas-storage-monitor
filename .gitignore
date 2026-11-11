@@ -1,3 +1,4 @@
 lab/config/
 lab/credentials.txt
 __pycache__/
+lab/*.png

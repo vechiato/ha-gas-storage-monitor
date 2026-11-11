@@ -2,6 +2,7 @@
 from datetime import datetime, time, timedelta
 import logging
 from pathlib import Path
+import re
 from zoneinfo import ZoneInfo
 
 from homeassistant.components import frontend
@@ -16,7 +17,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import json_bytes, json_fragment
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util import dt as dt_util
+from homeassistant.util import dt as dt_util, slugify
 from homeassistant.util.yaml import load_yaml_dict
 
 from . import api
@@ -97,8 +98,36 @@ class _Dashboard(LovelaceConfig):
         return self._json
 
 
-def _load_dashboard(weather: str | None) -> dict:
-    """dashboard.yaml with `if_weather` cards pointed at the chosen weather entity, or dropped."""
+_DEFAULT_ID = re.compile(rf"sensor\.{DOMAIN}_[a-z0-9_]+")
+
+
+def _entity_ids(hass: HomeAssistant) -> dict[str, str]:
+    """Default entity ID -> the entity ID this install actually has, for every sensor that differs."""
+    from .sensor import SENSORS  # noqa: PLC0415 - sensor imports DOMAIN from here
+
+    reg = er.async_get(hass)
+    ids = {}
+    for desc in SENSORS:
+        default = f"sensor.{DOMAIN}_{slugify(desc.name)}"
+        if (actual := reg.async_get_entity_id("sensor", DOMAIN, f"{DOMAIN}_{desc.key}")) and actual != default:
+            ids[default] = actual
+    return ids
+
+
+def _rewrite(node, ids: dict[str, str]):
+    """Swap default entity IDs for the real ones anywhere in the config, templates included."""
+    if isinstance(node, dict):
+        return {k: _rewrite(v, ids) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_rewrite(v, ids) for v in node]
+    if isinstance(node, str):
+        return _DEFAULT_ID.sub(lambda m: ids.get(m.group(0), m.group(0)), node)
+    return node
+
+
+def _load_dashboard(weather: str | None, ids: dict[str, str]) -> dict:
+    """dashboard.yaml with this install's entity IDs, and `if_weather` cards pointed at the
+    chosen weather entity or dropped."""
     config = load_yaml_dict(Path(__file__).parent / "dashboard.yaml")
     for section in config["views"][0]["sections"]:
         cards = []
@@ -110,13 +139,14 @@ def _load_dashboard(weather: str | None) -> dict:
                     card["entity"] = weather
             cards.append(card)
         section["cards"] = cards
-    return config
+    return _rewrite(config, ids)
 
 
 async def _register_dashboard(hass: HomeAssistant, weather: str | None) -> None:
     # mirrors how lovelace registers its own dashboards; LOVELACE_DATA and LovelaceConfig
     # are internal API, so if a HA update breaks this, only the dashboard is lost.
-    config = await hass.async_add_executor_job(_load_dashboard, weather)
+    # Entity IDs are read at setup: reload the integration after renaming entities.
+    config = await hass.async_add_executor_job(_load_dashboard, weather, _entity_ids(hass))
     hass.data[LOVELACE_DATA].dashboards[DASHBOARD_URL] = _Dashboard(hass, config)
     frontend.async_register_built_in_panel(
         hass, "lovelace", frontend_url_path=DASHBOARD_URL, sidebar_title="Gas Storage",
