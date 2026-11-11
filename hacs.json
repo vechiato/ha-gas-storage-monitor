@@ -1,4 +1,5 @@
 {
   "name": "Gas Storage Monitor",
-  "homeassistant": "2025.11.0"
+  "homeassistant": "2025.11.0",
+  "country": "GB"
 }
