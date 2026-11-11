@@ -1,0 +1,159 @@
+# Cards marked `if_weather: true` only appear when a weather entity is chosen in the
+# integration options; their `entity` is replaced with it. The dashboard is read at setup,
+# so reload the integration after editing this file.
+views:
+  - title: Gas storage
+    path: overview
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: UK storage
+            heading_style: title
+            badges:
+              - type: entity
+                entity: sensor.gas_storage_monitor_gas_day
+                show_icon: true
+          - type: gauge
+            entity: sensor.gas_storage_monitor_percent_full
+            name: Full
+            min: 0
+            max: 100
+            needle: true
+            segments:
+              - {from: 0, color: "var(--error-color)"}
+              - {from: 25, color: "var(--warning-color)"}
+              - {from: 50, color: "var(--success-color)"}
+            grid_options: {columns: 6}
+          - type: gauge
+            entity: sensor.gas_storage_monitor_days_of_cover
+            name: Days of cover
+            min: 0
+            max: 15
+            needle: true
+            segments:
+              - {from: 0, color: "var(--error-color)"}
+              - {from: 4, color: "var(--warning-color)"}
+              - {from: 7, color: "var(--success-color)"}
+            grid_options: {columns: 6}
+          - type: tile
+            entity: sensor.gas_storage_monitor_stock
+            name: Stock
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_stock_change
+            name: Change
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_demand_previous_day
+            name: Demand
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_days_of_cover_forecast
+            name: Cover ahead
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_demand_forecast
+            name: Tomorrow
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_temperature_vs_normal
+            name: vs normal temp
+            vertical: true
+            grid_options: {columns: 4, rows: 2}
+          # Rough has been empty for years; only show it once it holds gas.
+          - type: tile
+            entity: sensor.gas_storage_monitor_rough_percent_full
+            name: Rough
+            grid_options: {columns: 12}
+            visibility:
+              - condition: numeric_state
+                entity: sensor.gas_storage_monitor_rough_percent_full
+                above: 0
+          - type: heading
+            heading: Next 7 days
+            heading_style: title
+          - type: markdown
+            grid_options: {columns: 12}
+            content: |
+              {% set rows = state_attr('sensor.gas_storage_monitor_demand_forecast', 'forecast') or [] %}
+              | Gas day | Demand forecast | Seasonal normal |
+              |:--|--:|--:|
+              {% for r in rows -%}
+              | {{ strptime(r.date, '%Y-%m-%d').strftime('%a %-d %b') }} | {{ r.demand_gwh }} GWh | {{ r.normal_gwh ~ ' GWh' if r.normal_gwh is not none else '–' }} |
+              {% endfor %}
+          - type: weather-forecast
+            entity: weather.placeholder
+            forecast_type: daily
+            show_current: true
+            show_forecast: true
+            grid_options: {columns: 12}
+            if_weather: true
+          - type: statistics-graph
+            title: Days of cover
+            entities:
+              - entity: sensor.gas_storage_monitor_days_of_cover
+                name: On yesterday's demand
+              - entity: sensor.gas_storage_monitor_days_of_cover_forecast
+                name: On forecast demand
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: line
+            grid_options: {columns: 12}
+      # Stock trend is the same shape as % full, so it is not charted separately.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Last 90 days
+            heading_style: title
+          - type: statistics-graph
+            title: "% full"
+            entities: [sensor.gas_storage_monitor_percent_full]
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: line
+            hide_legend: true
+            grid_options: {columns: 12}
+          - type: statistics-graph
+            title: Daily change (GWh)
+            entities: [sensor.gas_storage_monitor_stock_change]
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: bar
+            hide_legend: true
+            grid_options: {columns: 12}
+          - type: statistics-graph
+            title: Demand (GWh)
+            entities:
+              - entity: sensor.gas_storage_monitor_demand_previous_day
+                name: Actual
+              - entity: sensor.gas_storage_monitor_demand_normal
+                name: Normal
+              - entity: sensor.gas_storage_monitor_demand_cold
+                name: Cold
+              - entity: sensor.gas_storage_monitor_demand_warm
+                name: Warm
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: line
+            grid_options: {columns: 12}
+          - type: statistics-graph
+            title: Temperature vs normal (°C)
+            entities: [sensor.gas_storage_monitor_temperature_vs_normal]
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: bar
+            hide_legend: true
+            grid_options: {columns: 12}

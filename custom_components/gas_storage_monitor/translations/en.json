@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Gas Storage Monitor",
+        "description": "National gas storage levels and days of cover, from the National Gas operational data API. No API key needed.",
+        "data": {
+          "weather": "Weather forecast"
+        },
+        "data_description": {
+          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Its forecast is shown on the Gas Storage dashboard next to the demand forecast."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Gas Storage Monitor is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Gas Storage Monitor",
+        "data": {
+          "weather": "Weather forecast"
+        },
+        "data_description": {
+          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Clear it to hide the forecast card."
+        }
+      }
+    }
+  }
+}

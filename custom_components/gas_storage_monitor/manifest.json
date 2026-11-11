@@ -1,0 +1,14 @@
+{
+  "domain": "gas_storage_monitor",
+  "name": "Gas Storage Monitor",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["frontend", "lovelace", "recorder"],
+  "documentation": "https://github.com/vechiato/ha-gas-storage-monitor",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/vechiato/ha-gas-storage-monitor/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
