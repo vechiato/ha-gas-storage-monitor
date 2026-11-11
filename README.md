@@ -42,16 +42,23 @@ During setup, or later under **Configure**, you can choose a weather entity you 
 
 ## Install
 
-**HACS:** add this repo as a custom repository (category *Integration*), install it, then restart HA.
+Requires Home Assistant 2025.11 or newer.
 
-**Manual:** copy `custom_components/gas_storage_monitor/` into `/config/custom_components/`, then restart HA.
+**Marketplace** (Settings → Marketplace):
 
-After that, go to Settings → Devices & services → Add integration → **Gas Storage Monitor**.
+1. Select **Add from link** and paste `https://github.com/vechiato/ha-gas-storage-monitor`.
+2. If asked, connect GitHub. This happens once, only on installs that never had HACS, and only reads public data.
+3. Open **Gas Storage Monitor**, select **Install**, then **Set up**.
 
-## Migrating from the command_line script
+**HACS** (Home Assistant without the Marketplace): add `https://github.com/vechiato/ha-gas-storage-monitor` as a custom repository with category *Integration*, install it, restart Home Assistant, then add **Gas Storage Monitor** under Settings → Devices & services.
 
-1. Remove the `command_line:` and `template:` blocks for `uk_gas_storage_*_ng` and delete `bin/ng_storage.py`.
-2. Delete your old dashboard, or swap the entity IDs above into it.
+**Manual:** copy `custom_components/gas_storage_monitor/` into your `config/custom_components/` folder, restart Home Assistant, then add **Gas Storage Monitor** under Settings → Devices & services.
+
+## Updating
+
+Install the new version from the Marketplace or HACS, then restart Home Assistant. A restart is needed because Home Assistant only loads an integration's code when it starts.
+
+If you rename the integration's entities, or Home Assistant renames them (for example adding the area name when you choose an area during setup), the dashboard follows: reload the integration under Settings → Devices & services → Gas Storage Monitor → ⋮ → Reload.
 
 ## Self-check
 
