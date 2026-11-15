@@ -85,8 +85,8 @@ views:
                 entity: sensor.gas_storage_monitor_supply_total
                 show_icon: true
           - type: tile
-            entity: sensor.gas_storage_monitor_supply_uk_beach
-            name: UK beach
+            entity: sensor.gas_storage_monitor_supply_uk_north_sea
+            name: UK North Sea
             vertical: true
             grid_options: {columns: 3, rows: 2}
           - type: tile
@@ -118,7 +118,7 @@ views:
             content: |
               {% set total = states('sensor.gas_storage_monitor_supply_total') | float(0) %}
               {% set rows = [
-                ('UK beach', 'sensor.gas_storage_monitor_supply_uk_beach'),
+                ('UK North Sea', 'sensor.gas_storage_monitor_supply_uk_north_sea'),
                 ('Norway', 'sensor.gas_storage_monitor_supply_norway'),
                 ('LNG', 'sensor.gas_storage_monitor_supply_lng'),
                 ('Storage', 'sensor.gas_storage_monitor_supply_storage'),
@@ -204,8 +204,8 @@ views:
           - type: statistics-graph
             title: Supply by source (GWh)
             entities:
-              - entity: sensor.gas_storage_monitor_supply_uk_beach
-                name: UK beach
+              - entity: sensor.gas_storage_monitor_supply_uk_north_sea
+                name: UK North Sea
               - entity: sensor.gas_storage_monitor_supply_norway
                 name: Norway
               - entity: sensor.gas_storage_monitor_supply_lng

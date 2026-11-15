@@ -55,7 +55,7 @@ The entity IDs below are what you get when the device has no area. Home Assistan
     Gas from the LNG import terminals: South Hook and Dragon at Milford Haven, and Isle of Grain.
 
 15. **Supply Norway** · `sensor.gas_storage_monitor_supply_norway` · GWh
-    Gas through Langeled, Norway's main pipeline to the UK (lands at Easington). Some Norwegian gas also arrives at St Fergus through Vesterled, but that is metered together with UK gas, so it counts under UK beach.
+    Gas through Langeled, Norway's main pipeline to the UK (lands at Easington). Some Norwegian gas also arrives at St Fergus through Vesterled, but that is metered together with UK gas, so it counts under UK North Sea.
 
 16. **Supply storage** · `sensor.gas_storage_monitor_supply_storage` · GWh
     Gas taken out of storage and put into the network. This is gross withdrawal; Stock change is net of injection.
@@ -63,8 +63,8 @@ The entity IDs below are what you get when the device has no area. Home Assistan
 17. **Supply total** · `sensor.gas_storage_monitor_supply_total` · GWh
     All gas put into the national network that day. The other Supply sensors add up to this.
 
-18. **Supply UK beach** · `sensor.gas_storage_monitor_supply_uk_beach` · GWh
-    Gas from the beach terminals (St Fergus, Bacton, Easington, Teesside and others), mostly UK North Sea production, minus Langeled.
+18. **Supply UK North Sea** · `sensor.gas_storage_monitor_supply_uk_north_sea` · GWh
+    Gas from the beach terminals, where offshore pipelines come ashore (St Fergus, Bacton, Easington, Teesside, Barrow and others), minus Langeled. Mostly UK North Sea production, plus a little onshore gas and the Norwegian gas that lands at St Fergus. Called *Supply UK beach* in v0.1.3; installs from then keep the entity ID `…_supply_uk_beach`.
 
 19. **Temperature vs normal** · `sensor.gas_storage_monitor_temperature_vs_normal` · °C
     National Gas's temperature forecast for today minus the seasonal normal temperature. Negative means colder than usual, which pushes demand up. Attributes `forecast_c` and `normal_c` hold the two temperatures.
@@ -88,7 +88,7 @@ Most sensors also have a `gas_day` attribute: the gas day that figure belongs to
 | Demand forecast | PUBOB690, PUBOB36, PUBOB39, PUBOB42, PUBOB45, PUBOBJ2341, PUBOBJ2342 (forecasts made 1 to 7 days ahead) | daily, about 16:00 |
 | Demand normal / cold / warm | PUBOB2535 / PUBOB2066 / PUBOB2067 | published for the year ahead |
 | Temperature vs normal | PUBOBJ507, PUBOBJ510 | daily |
-| Supply total / UK beach / Norway / LNG / storage / interconnectors | PUBOBJ635 / PUBOBJ627 minus PUBOBJ570 / PUBOBJ570 / PUBOBJ629 / PUBOBJ630 / PUBOBJ628 | about 14:00 the next day |
+| Supply total / UK North Sea / Norway / LNG / storage / interconnectors | PUBOBJ635 / PUBOBJ627 minus PUBOBJ570 / PUBOBJ570 / PUBOBJ629 / PUBOBJ630 / PUBOBJ628 | about 14:00 the next day |
 
 All demand and supply figures use National Gas's volume data (mscm), converted at a fixed 10.97 GWh per mscm, so demand, supply and their forecasts compare like with like. The energy item PUBOBJ1030 is not used: it leaves out part of demand (likely exports and storage injection), so its ratio to volume swings from 6 to 10 through the year.
 
@@ -117,9 +117,9 @@ Left column, top to bottom:
 | **vs normal temp** tile | Temperature vs normal | Negative = colder than usual |
 | **Rough** tile | Rough percent full | Only shown when Rough holds gas |
 | Badge next to "Supply yesterday" | Supply total | All gas put into the network on the previous gas day |
-| **UK beach**, **Norway**, **LNG**, **Storage** tiles | Supply sensors | Where that gas came from |
+| **UK North Sea**, **Norway**, **LNG**, **Storage** tiles | Supply sensors | Where that gas came from |
 | **Interconnectors** tile | Supply interconnectors | Only shown when gas is coming in through them |
-| Supply share table | Supply sensors | Each source's share of the day's supply. UK beach and Norway are close to flat all winter; LNG and storage cover the rise on cold days |
+| Supply share table | Supply sensors | Each source's share of the day's supply. UK North Sea and Norway are close to flat all winter; LNG and storage cover the rise on cold days |
 | **Next 7 days** table | Demand forecast (`forecast` attribute) | Forecast demand per gas day next to the seasonal normal; a big gap above normal means a cold spell is expected |
 | Weather card | your weather entity | Only shown if you chose one (see below) |
 | **Days of cover** chart | Days of cover, Days of cover forecast | Blue uses yesterday's demand, yellow uses forecast demand; a falling line means storage is being used up faster than demand eases |
@@ -131,7 +131,7 @@ Right column, **Last 90 days**:
 | **% full** | Percent full | Storage usually fills through summer and autumn and drains through winter |
 | **Daily change (GWh)** | Stock change | Bars above zero are injection, below zero are withdrawal |
 | **Demand (GWh)** | Demand previous day, normal, cold, warm | Blue is actual demand; yellow is normal; red and green are the cold and warm bands. Blue near red means a cold-weather level of demand |
-| **Supply by source (GWh)** | Supply UK beach, Norway, LNG, storage, interconnectors | Lines rising together with demand show which source is meeting it; in winter that is mostly LNG and storage |
+| **Supply by source (GWh)** | Supply UK North Sea, Norway, LNG, storage, interconnectors | Lines rising together with demand show which source is meeting it; in winter that is mostly LNG and storage |
 | **Temperature vs normal (°C)** | Temperature vs normal | Bars below zero are colder-than-normal days; they usually line up with demand rising towards the cold band |
 
 The charts show daily averages from Home Assistant's long-term statistics. A gap means National Gas published no data for those days (for example, the seasonal normal temperature is missing for 1 to 7 October 2026).

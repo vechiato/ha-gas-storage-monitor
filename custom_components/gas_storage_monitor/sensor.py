@@ -46,7 +46,7 @@ SENSORS = [
                               state_class=M, suggested_display_precision=0, icon=icon)
       for key, name, icon in [
           ("total", "total", "mdi:transmission-tower-import"),
-          ("beach", "UK beach", "mdi:waves"),
+          ("beach", "UK North Sea", "mdi:waves"),
           ("norway", "Norway", "mdi:pipe"),
           ("lng", "LNG", "mdi:ferry"),
           ("storage", "storage", "mdi:gas-cylinder"),
