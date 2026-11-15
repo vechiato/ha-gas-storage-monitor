@@ -64,7 +64,7 @@ The entity IDs below are what you get when the device has no area. Home Assistan
     All gas put into the national network that day. The other Supply sensors add up to this.
 
 18. **Supply UK North Sea** · `sensor.gas_storage_monitor_supply_uk_north_sea` · GWh
-    Gas from the beach terminals, where offshore pipelines come ashore (St Fergus, Bacton, Easington, Teesside, Barrow and others), minus Langeled. Mostly UK North Sea production, plus a little onshore gas and the Norwegian gas that lands at St Fergus. Called *Supply UK beach* in v0.1.3; installs from then keep the entity ID `…_supply_uk_beach`.
+    Gas from the beach terminals, where offshore pipelines come ashore (St Fergus, Bacton, Easington, Teesside, Barrow and others), minus Langeled. Mostly UK North Sea production, plus a little onshore gas and the Norwegian gas that lands at St Fergus. National Gas's beach-terminal figure includes Langeled, which lands at Easington, so it is subtracted here to avoid counting it twice; it appears under Supply Norway instead. Called *Supply UK beach* in v0.1.3; installs from then keep the entity ID `…_supply_uk_beach`.
 
 19. **Temperature vs normal** · `sensor.gas_storage_monitor_temperature_vs_normal` · °C
     National Gas's temperature forecast for today minus the seasonal normal temperature. Negative means colder than usual, which pushes demand up. Attributes `forecast_c` and `normal_c` hold the two temperatures.
