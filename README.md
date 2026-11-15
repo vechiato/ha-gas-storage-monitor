@@ -1,6 +1,6 @@
 # Gas Storage Monitor
 
-National gas storage levels and days of cover for Home Assistant.
+UK gas storage, demand and supply by source for Home Assistant.
 
 Data comes from the [National Gas operational data API](https://apideveloper.nationalgas.com/s). You don't need an API key. Built for HA Container. It adds no pip packages and makes no Supervisor calls.
 
