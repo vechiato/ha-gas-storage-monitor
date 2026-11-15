@@ -43,6 +43,8 @@ BACKFILL = {
     "cold_gwh": ("GWh", "energy", 1),
     "warm_gwh": ("GWh", "energy", 1),
     "temp_delta": ("°C", "temperature", 0),
+    # Supply by source publishes D+1, like demand.
+    **{f"supply_{k}_gwh": ("GWh", "energy", 1) for k in ("total", "beach", "norway", "lng", "storage", "ic")},
 }
 
 

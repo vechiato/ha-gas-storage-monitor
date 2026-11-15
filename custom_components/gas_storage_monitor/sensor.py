@@ -42,6 +42,16 @@ SENSORS = [
     SensorEntityDescription(key="temp_delta", name="Temperature vs normal", native_unit_of_measurement="°C",
                             state_class=M, suggested_display_precision=1, icon="mdi:thermometer"),
     SensorEntityDescription(key="stock_date", name="Gas day", device_class=SensorDeviceClass.DATE),
+    *(SensorEntityDescription(key=f"supply_{key}_gwh", name=f"Supply {name}", native_unit_of_measurement="GWh",
+                              state_class=M, suggested_display_precision=0, icon=icon)
+      for key, name, icon in [
+          ("total", "total", "mdi:transmission-tower-import"),
+          ("beach", "UK beach", "mdi:waves"),
+          ("norway", "Norway", "mdi:pipe"),
+          ("lng", "LNG", "mdi:ferry"),
+          ("storage", "storage", "mdi:gas-cylinder"),
+          ("ic", "interconnectors", "mdi:swap-horizontal"),
+      ]),
 ]
 
 # Extra attributes per sensor: {sensor key: {attribute: data key}}.

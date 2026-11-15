@@ -27,6 +27,13 @@ IDS = {
     "PUBOBJ2342": "fc7",
     "PUBOBJ507": "temp_c",          # Temperature, Forecast, D
     "PUBOBJ510": "temp_normal_c",   # Temperature, Seasonal Normal, D
+    # Physical input to the NTS by source, D+1. Subterminal = all beach terminals, Langeled included.
+    "PUBOBJ635": "in_total_mscm",   # NTS System Input Physical
+    "PUBOBJ627": "in_beach_mscm",   # Aggregate Physical Volume, Subterminal
+    "PUBOBJ570": "in_norway_mscm",  # Easington-Langeled (Norway's other pipe, Vesterled, is metered with UK gas at St Fergus)
+    "PUBOBJ629": "in_lng_mscm",     # Aggregate Physical Volume, LNG Importation
+    "PUBOBJ630": "in_storage_mscm", # Aggregate Physical Volume, Storage Withdrawal
+    "PUBOBJ628": "in_ic_mscm",      # Aggregate Physical Volume, Interconnector (imports only)
 }
 LEADS = range(1, 8)
 # fixed GB calorific value, ~39.5 MJ/m3 = 10.97 GWh per mscm; real CV moves ~1%.
@@ -68,7 +75,10 @@ def _gwh(series):
 def history(raw):
     """Per-gas-day series for each sensor key: {key: {date: value}}."""
     s = _series(raw)
-    stock, demand = s["stock_kwh"], _gwh(s["demand_mscm"])
+    # National Gas sometimes posts a partial demand figure in the morning (e.g. 1.2 mscm at 10:20,
+    # the real ~270 at 12:20). Skip anything below 30% of the seasonal normal until it's complete.
+    demand = _gwh({d: v for d, v in s["demand_mscm"].items() if v >= 0.3 * s["normal_mscm"].get(d, 0)})
+    stock = s["stock_kwh"]
 
     def cover_ahead(d):
         # Forecasts made on day d for the next 7 gas days.
@@ -92,6 +102,14 @@ def history(raw):
         "temp_normal_c": s["temp_normal_c"],
         "temp_delta": {d: round(t - s["temp_normal_c"][d], 1)
                        for d, t in s["temp_c"].items() if d in s["temp_normal_c"]},
+        "supply_total_gwh": _gwh(s["in_total_mscm"]),
+        # UK beach = all beach terminals minus Langeled.
+        "supply_beach_gwh": _gwh({d: v - s["in_norway_mscm"][d]
+                                  for d, v in s["in_beach_mscm"].items() if d in s["in_norway_mscm"]}),
+        "supply_norway_gwh": _gwh(s["in_norway_mscm"]),
+        "supply_lng_gwh": _gwh(s["in_lng_mscm"]),
+        "supply_storage_gwh": _gwh(s["in_storage_mscm"]),
+        "supply_ic_gwh": _gwh(s["in_ic_mscm"]),
     }
 
 
@@ -137,13 +155,19 @@ if __name__ == "__main__":
         p("PUBOBJ330", ("2026-11-09", "11000000000"), ("2026-11-10", "10400000000")),
         p("PUBOB2050", ("2026-11-10", "55.06")),
         p("PUBOB2046", ("2026-11-10", "")),
-        p("PUBOB637", ("2026-11-09", "290")),                       # x 10.97 = 3181.3 GWh
-        p("PUBOB2535", ("2026-11-09", "250"), ("2026-11-11", "240")),
+        p("PUBOB637", ("2026-11-09", "290"), ("2026-11-10", "1.2")),  # 290 x 10.97 = 3181.3 GWh; 1.2 is partial
+        p("PUBOB2535", ("2026-11-09", "250"), ("2026-11-10", "245"), ("2026-11-11", "240")),
         p("PUBOB2066", ("2026-11-09", "300")),
         p("PUBOB690", ("2026-11-11", "260")),                       # made 10 Nov for 11 Nov
         p("PUBOB36", ("2026-11-11", "999"), ("2026-11-12", "270")), # older forecast for 11 Nov is ignored
         p("PUBOBJ507", ("2026-11-10", "6.2")),
         p("PUBOBJ510", ("2026-11-10", "7.8")),
+        p("PUBOBJ635", ("2026-11-09", "264.5")),
+        p("PUBOBJ627", ("2026-11-09", "188.3")),
+        p("PUBOBJ570", ("2026-11-09", "73.8")),
+        p("PUBOBJ629", ("2026-11-09", "59.9")),
+        p("PUBOBJ630", ("2026-11-09", "16.3")),
+        p("PUBOBJ628", ("2026-11-09", "0")),
     ]
     today = dt.date(2026, 11, 10)
     r = parse(sample, today)
@@ -158,6 +182,9 @@ if __name__ == "__main__":
     assert r["forecast_gwh"] == 2852, r
     assert r["days_forecast"] == round(10400 / (265 * 10.97), 2), r  # mean of 260 and 270 mscm
     assert r["temp_delta"] == -1.6 and r["temp_c"] == 6.2, r
+    assert r["supply_beach_gwh"] == round((188.3 - 73.8) * 10.97, 1), r
+    assert r["supply_norway_gwh"] == 809.6 and r["supply_ic_gwh"] == 0, r
+    assert r["supply_total_gwh_date"] == dt.date(2026, 11, 9), r
     assert parse([], today) == {"stock_date": None}
     h = history(sample)
     assert list(h["days"]) == [today], h  # 9 Nov stock has no 8 Nov demand

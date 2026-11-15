@@ -78,6 +78,58 @@ views:
                 entity: sensor.gas_storage_monitor_rough_percent_full
                 above: 0
           - type: heading
+            heading: Supply yesterday
+            heading_style: title
+            badges:
+              - type: entity
+                entity: sensor.gas_storage_monitor_supply_total
+                show_icon: true
+          - type: tile
+            entity: sensor.gas_storage_monitor_supply_uk_beach
+            name: UK beach
+            vertical: true
+            grid_options: {columns: 3, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_supply_norway
+            name: Norway
+            vertical: true
+            grid_options: {columns: 3, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_supply_lng
+            name: LNG
+            vertical: true
+            grid_options: {columns: 3, rows: 2}
+          - type: tile
+            entity: sensor.gas_storage_monitor_supply_storage
+            name: Storage
+            vertical: true
+            grid_options: {columns: 3, rows: 2}
+          # Interconnector imports are near zero most of the year; show them when they flow.
+          - type: tile
+            entity: sensor.gas_storage_monitor_supply_interconnectors
+            name: Interconnectors
+            grid_options: {columns: 12}
+            visibility:
+              - condition: numeric_state
+                entity: sensor.gas_storage_monitor_supply_interconnectors
+                above: 0.5
+          - type: markdown
+            grid_options: {columns: 12}
+            content: |
+              {% set total = states('sensor.gas_storage_monitor_supply_total') | float(0) %}
+              {% set rows = [
+                ('UK beach', 'sensor.gas_storage_monitor_supply_uk_beach'),
+                ('Norway', 'sensor.gas_storage_monitor_supply_norway'),
+                ('LNG', 'sensor.gas_storage_monitor_supply_lng'),
+                ('Storage', 'sensor.gas_storage_monitor_supply_storage'),
+                ('Interconnectors', 'sensor.gas_storage_monitor_supply_interconnectors')] %}
+              | Source | GWh | Share | |
+              |:--|--:|--:|:--|
+              {% for name, e in rows if total > 0 -%}
+              {% set v = states(e) | float(0) %}{% set pct = 100 * v / total -%}
+              | {{ name }} | {{ '{:,.0f}'.format(v) }} | {{ pct | round(0) | int }} % | {{ '█' * (pct / 5) | round(0) | int }} |
+              {% endfor %}
+          - type: heading
             heading: Next 7 days
             heading_style: title
           - type: markdown
@@ -143,6 +195,25 @@ views:
                 name: Cold
               - entity: sensor.gas_storage_monitor_demand_warm
                 name: Warm
+            days_to_show: 90
+            period: day
+            stat_types: [mean]
+            chart_type: line
+            grid_options: {columns: 12}
+          # Lines, not bars: statistics-graph draws bars side by side, it can't stack them.
+          - type: statistics-graph
+            title: Supply by source (GWh)
+            entities:
+              - entity: sensor.gas_storage_monitor_supply_uk_beach
+                name: UK beach
+              - entity: sensor.gas_storage_monitor_supply_norway
+                name: Norway
+              - entity: sensor.gas_storage_monitor_supply_lng
+                name: LNG
+              - entity: sensor.gas_storage_monitor_supply_storage
+                name: Storage
+              - entity: sensor.gas_storage_monitor_supply_interconnectors
+                name: Interconnectors
             days_to_show: 90
             period: day
             stat_types: [mean]
