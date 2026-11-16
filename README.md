@@ -144,7 +144,7 @@ It works on phones too:
 
 During setup, or later under **Configure**, you can choose a weather entity you already have (Pirate Weather, Met Office, Met.no, …). Its daily forecast is then shown on the dashboard next to the demand forecast. Clear the field to hide it.
 
-<img src="https://raw.githubusercontent.com/vechiato/ha-gas-storage-monitor/main/docs/images/setup.png" alt="Weather forecast option" width="480">
+<img src="https://raw.githubusercontent.com/vechiato/ha-gas-storage-monitor/main/docs/images/setup.png" alt="Configure dialog with the weather forecast and history options" width="480">
 
 ### History (optional)
 
