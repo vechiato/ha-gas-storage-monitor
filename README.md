@@ -94,7 +94,7 @@ All demand and supply figures use National Gas's volume data (mscm), converted a
 
 National Gas sometimes posts an incomplete demand figure for the previous day in the morning and replaces it a couple of hours later. Figures below 30 % of the seasonal normal are ignored until then.
 
-The integration polls every hour. On first setup it also imports the last 90 days into long-term statistics, so the charts start out full.
+The integration polls every hour. On first setup it also imports past days into long-term statistics (90 by default, see [History](#history-optional)), so the charts start out full.
 
 ## Dashboard
 
@@ -124,7 +124,7 @@ Left column, top to bottom:
 | Weather card | your weather entity | Only shown if you chose one (see below) |
 | **Days of cover** chart | Days of cover, Days of cover forecast | Blue uses yesterday's demand, yellow uses forecast demand; a falling line means storage is being used up faster than demand eases |
 
-Right column, **Last 90 days**:
+Right column, **Last 90 days** (up to 180 with a longer [history](#history-optional)):
 
 | Chart | Sensor | How to read it |
 |---|---|---|
@@ -145,6 +145,12 @@ It works on phones too:
 During setup, or later under **Configure**, you can choose a weather entity you already have (Pirate Weather, Met Office, Met.no, …). Its daily forecast is then shown on the dashboard next to the demand forecast. Clear the field to hide it.
 
 <img src="https://raw.githubusercontent.com/vechiato/ha-gas-storage-monitor/main/docs/images/setup.png" alt="Weather forecast option" width="480">
+
+### History (optional)
+
+**History to import** sets how far back the integration loads past days: 90 days (default), 6 months, 1 year or 2 years. You can raise it later under **Configure**; the older days load in the background, which takes a few minutes for a year or more because National Gas limits how much you can request at once. Lowering it doesn't delete anything.
+
+The dashboard charts follow it up to 180 days, since daily charts get hard to read beyond that. The full history is in the **History** panel.
 
 ## Install
 

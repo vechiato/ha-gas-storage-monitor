@@ -5,10 +5,12 @@
         "title": "Gas Storage Monitor",
         "description": "National gas storage levels and days of cover, from the National Gas operational data API. No API key needed.",
         "data": {
-          "weather": "Weather forecast"
+          "weather": "Weather forecast",
+          "history_days": "History to import"
         },
         "data_description": {
-          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Its forecast is shown on the Gas Storage dashboard next to the demand forecast."
+          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Its forecast is shown on the Gas Storage dashboard next to the demand forecast.",
+          "history_days": "How far back to load charts and statistics when you set this up. Longer takes a few minutes in the background."
         }
       }
     },
@@ -21,11 +23,23 @@
       "init": {
         "title": "Gas Storage Monitor",
         "data": {
-          "weather": "Weather forecast"
+          "weather": "Weather forecast",
+          "history_days": "History to import"
         },
         "data_description": {
-          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Clear it to hide the forecast card."
+          "weather": "Optional. A weather entity you already have, such as Pirate Weather. Clear it to hide the forecast card.",
+          "history_days": "Raising it loads the older days in the background (a few minutes for a year or more). Lowering it doesn't delete history."
         }
+      }
+    }
+  },
+  "selector": {
+    "history_days": {
+      "options": {
+        "90": "90 days",
+        "180": "6 months",
+        "365": "1 year",
+        "730": "2 years"
       }
     }
   }
