@@ -1,4 +1,5 @@
 """Gas Storage Monitor: national gas storage levels and days of cover."""
+import asyncio
 from datetime import datetime, time, timedelta
 import logging
 from pathlib import Path
@@ -27,7 +28,12 @@ PLATFORMS = [Platform.SENSOR]
 DASHBOARD_URL = "gas-storage"
 _LOGGER = logging.getLogger(__name__)
 
-BACKFILL_DAYS = 90
+BACKFILL_DAYS = 90  # default, and what every install got before the history option existed
+HISTORY_DAYS = (90, 180, 365, 730)
+# National Gas rejects much more than ~120 days of all our items in one request (error 2005,
+# "data volume threshold") and blocks bursts with 429, so longer backfills go in spaced chunks.
+CHUNK_DAYS = 100
+CHUNK_PAUSE = 30
 # key: (unit, recorder unit_class, days after the gas day the value became visible)
 # Stock/% publish ~15:30 on the gas day; demand D+1 publishes ~14:00 the next day.
 BACKFILL = {
@@ -48,37 +54,59 @@ BACKFILL = {
 }
 
 
-def _pending_backfill(entry: ConfigEntry) -> list[str]:
-    """Sensors not backfilled yet; sensors added in later versions get their history too."""
-    return [key for key in BACKFILL if key not in entry.data.get("backfilled", [])]
+def _history_days(entry: ConfigEntry) -> int:
+    return int(entry.options.get("history_days", BACKFILL_DAYS))
+
+
+def _pending_backfill(entry: ConfigEntry) -> bool:
+    """Sensors added in later versions get their history, and a longer history option gets the older days."""
+    return (any(key not in entry.data.get("backfilled", []) for key in BACKFILL)
+            or _history_days(entry) > entry.data.get("backfilled_days", BACKFILL_DAYS))
+
+
+async def _fetch_history(session, days: int) -> list:
+    raw = []
+    for i, back in enumerate(range(days, 0, -CHUNK_DAYS)):
+        if i:
+            await asyncio.sleep(CHUNK_PAUSE)
+        # chunks overlap by a day, which history() needs for day-on-day values; the last one adds forecasts
+        raw += await api.fetch(session, days=back, ahead=CHUNK_DAYS - back if back > CHUNK_DAYS else 8)
+    return raw
 
 
 async def _backfill(hass: HomeAssistant, entry: ConfigEntry, session) -> None:
-    """Import the last 90 gas days into long-term statistics, once per sensor."""
-    todo = _pending_backfill(entry)
-    hist = api.history(await api.fetch(session, days=BACKFILL_DAYS))
+    """Import past gas days into long-term statistics. New sensors get the whole window; sensors
+    already backfilled only get the days before their old window, so recorded stats aren't touched."""
+    done = entry.data.get("backfilled", [])
+    have = entry.data.get("backfilled_days", BACKFILL_DAYS)
+    want = max(_history_days(entry), have)
+    todo = [key for key in BACKFILL if key not in done or want > have]
+    hist = api.history(await _fetch_history(session, want))
     reg = er.async_get(hass)
     uk = ZoneInfo("Europe/London")
     now_hour = dt_util.utcnow().replace(minute=0, second=0, microsecond=0)
+    # first gas day of the old window or later; everything from there on is already in the recorder
+    old_start = datetime.now(uk).date() - timedelta(days=have)
     for key in todo:
         unit, unit_class, shift = BACKFILL[key]
         if not (entity_id := reg.async_get_entity_id("sensor", DOMAIN, f"{DOMAIN}_{key}")):
             continue
         # one hourly row per gas day at 16:00 UK; daily graphs only need one point.
-        # Rows from the install hour on are left to the recorder's own stats.
         stats = [
             {"start": start, "mean": v, "min": v, "max": v}
             for d, v in sorted(hist[key].items())
             if (start := datetime.combine(d + timedelta(days=shift), time(16), uk)) < now_hour
+            and (key not in done or d < old_start)
         ]
         async_import_statistics(hass, {
             "source": "recorder", "statistic_id": entity_id, "name": None,
             "unit_of_measurement": unit, "unit_class": unit_class,
             "mean_type": StatisticMeanType.ARITHMETIC, "has_sum": False,
         }, stats)
-    done = [*entry.data.get("backfilled", []), *todo]
-    hass.config_entries.async_update_entry(entry, data={**entry.data, "backfilled": done})
-    _LOGGER.info("Backfilled %s days of statistics for %s", BACKFILL_DAYS, ", ".join(todo))
+    hass.config_entries.async_update_entry(entry, data={
+        **entry.data, "backfilled": [*done, *(k for k in todo if k not in done)], "backfilled_days": want,
+    })
+    _LOGGER.info("Backfilled %s days of statistics for %s", want, ", ".join(todo))
 
 
 class _Dashboard(LovelaceConfig):
@@ -127,9 +155,23 @@ def _rewrite(node, ids: dict[str, str]):
     return node
 
 
-def _load_dashboard(weather: str | None, ids: dict[str, str]) -> dict:
-    """dashboard.yaml with this install's entity IDs, and `if_weather` cards pointed at the
-    chosen weather entity or dropped."""
+def _set_days(node, days: int) -> None:
+    """Charts and their heading cover the history option instead of dashboard.yaml's 90 days."""
+    if isinstance(node, list):
+        for v in node:
+            _set_days(v, days)
+    elif isinstance(node, dict):
+        if "days_to_show" in node:
+            node["days_to_show"] = days
+        if node.get("heading") == f"Last {BACKFILL_DAYS} days":
+            node["heading"] = f"Last {days} days"
+        for v in node.values():
+            _set_days(v, days)
+
+
+def _load_dashboard(weather: str | None, ids: dict[str, str], days: int = BACKFILL_DAYS) -> dict:
+    """dashboard.yaml with this install's entity IDs, charts covering `days`, and `if_weather`
+    cards pointed at the chosen weather entity or dropped."""
     config = load_yaml_dict(Path(__file__).parent / "dashboard.yaml")
     for section in config["views"][0]["sections"]:
         cards = []
@@ -141,14 +183,16 @@ def _load_dashboard(weather: str | None, ids: dict[str, str]) -> dict:
                     card["entity"] = weather
             cards.append(card)
         section["cards"] = cards
+    # daily charts get unreadable past ~6 months; longer history is for the History panel
+    _set_days(config, min(days, 180))
     return _rewrite(config, ids)
 
 
-async def _register_dashboard(hass: HomeAssistant, weather: str | None) -> None:
+async def _register_dashboard(hass: HomeAssistant, weather: str | None, days: int) -> None:
     # mirrors how lovelace registers its own dashboards; LOVELACE_DATA and LovelaceConfig
     # are internal API, so if a HA update breaks this, only the dashboard is lost.
     # Entity IDs are read at setup: reload the integration after renaming entities.
-    config = await hass.async_add_executor_job(_load_dashboard, weather, _entity_ids(hass))
+    config = await hass.async_add_executor_job(_load_dashboard, weather, _entity_ids(hass), days)
     hass.data[LOVELACE_DATA].dashboards[DASHBOARD_URL] = _Dashboard(hass, config)
     frontend.async_register_built_in_panel(
         hass, "lovelace", frontend_url_path=DASHBOARD_URL, sidebar_title="Gas Storage",
@@ -180,7 +224,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     try:
-        await _register_dashboard(hass, entry.options.get("weather"))
+        await _register_dashboard(hass, entry.options.get("weather"), _history_days(entry))
     except Exception:  # noqa: BLE001 - sensors must keep working if HA internals change
         _LOGGER.exception("Could not register Gas Storage dashboard")
     if _pending_backfill(entry):
