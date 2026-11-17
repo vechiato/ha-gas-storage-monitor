@@ -158,12 +158,12 @@ Requires Home Assistant 2025.11 or newer.
 
 **Marketplace** (Settings → Marketplace):
 
-1. Select **Add from link** and paste `https://github.com/vechiato/ha-gas-storage-monitor`.
+1. Search for **Gas Storage Monitor**. If it doesn't show up, select **Add from link** and paste `https://github.com/vechiato/ha-gas-storage-monitor`.
 2. If asked, connect GitHub. This happens once, only on installs that never had HACS, and only reads public data.
 3. Open **Gas Storage Monitor**, select **Install**, then **Set up**.
 4. In the **Name and assign** step, leave **Area** empty if you want entity IDs without an area prefix (see [Sensors](#sensors)). You can assign an area later from the device settings without changing the entity IDs.
 
-**HACS** (Home Assistant without the Marketplace): add `https://github.com/vechiato/ha-gas-storage-monitor` as a custom repository with category *Integration*, install it, restart Home Assistant, then add **Gas Storage Monitor** under Settings → Devices & services.
+**HACS** (Home Assistant without the Marketplace): search for **Gas Storage Monitor** in HACS, install it, restart Home Assistant, then add **Gas Storage Monitor** under Settings → Devices & services.
 
 **Manual:** copy `custom_components/gas_storage_monitor/` into your `config/custom_components/` folder, restart Home Assistant, then add **Gas Storage Monitor** under Settings → Devices & services.
 
