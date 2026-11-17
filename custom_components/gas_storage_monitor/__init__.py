@@ -4,7 +4,6 @@ from datetime import datetime, time, timedelta
 import logging
 from pathlib import Path
 import re
-from zoneinfo import ZoneInfo
 
 from homeassistant.components import frontend
 from homeassistant.components.lovelace.const import LOVELACE_DATA
@@ -83,7 +82,7 @@ async def _backfill(hass: HomeAssistant, entry: ConfigEntry, session) -> None:
     todo = [key for key in BACKFILL if key not in done or want > have]
     hist = api.history(await _fetch_history(session, want))
     reg = er.async_get(hass)
-    uk = ZoneInfo("Europe/London")
+    uk = await dt_util.async_get_time_zone("Europe/London")
     now_hour = dt_util.utcnow().replace(minute=0, second=0, microsecond=0)
     # first gas day of the old window or later; everything from there on is already in the recorder
     old_start = datetime.now(uk).date() - timedelta(days=have)
