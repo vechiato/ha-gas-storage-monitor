@@ -1,7 +1,7 @@
 {
   "domain": "gas_storage_monitor",
   "name": "Gas Storage Monitor",
-  "codeowners": [],
+  "codeowners": ["@vechiato"],
   "config_flow": true,
   "dependencies": ["frontend", "lovelace", "recorder"],
   "documentation": "https://github.com/vechiato/ha-gas-storage-monitor",
