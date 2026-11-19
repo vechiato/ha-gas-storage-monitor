@@ -103,7 +103,7 @@ def history(raw):
         "temp_delta": {d: round(t - s["temp_normal_c"][d], 1)
                        for d, t in s["temp_c"].items() if d in s["temp_normal_c"]},
         "supply_total_gwh": _gwh(s["in_total_mscm"]),
-        # UK North Sea = all beach terminals minus Langeled.
+        # Beach terminals minus Langeled; Norwegian gas landing at St Fergus stays in here.
         "supply_beach_gwh": _gwh({d: v - s["in_norway_mscm"][d]
                                   for d, v in s["in_beach_mscm"].items() if d in s["in_norway_mscm"]}),
         "supply_norway_gwh": _gwh(s["in_norway_mscm"]),

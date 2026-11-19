@@ -85,13 +85,13 @@ views:
                 entity: sensor.gas_storage_monitor_supply_total
                 show_icon: true
           - type: tile
-            entity: sensor.gas_storage_monitor_supply_uk_north_sea
-            name: UK North Sea
+            entity: sensor.gas_storage_monitor_supply_beach_terminals
+            name: Beach terminals
             vertical: true
             grid_options: {columns: 3, rows: 2}
           - type: tile
-            entity: sensor.gas_storage_monitor_supply_norway
-            name: Norway
+            entity: sensor.gas_storage_monitor_supply_norway_langeled
+            name: Norway (Langeled)
             vertical: true
             grid_options: {columns: 3, rows: 2}
           - type: tile
@@ -118,8 +118,8 @@ views:
             content: |
               {% set total = states('sensor.gas_storage_monitor_supply_total') | float(0) %}
               {% set rows = [
-                ('UK North Sea', 'sensor.gas_storage_monitor_supply_uk_north_sea'),
-                ('Norway', 'sensor.gas_storage_monitor_supply_norway'),
+                ('Beach terminals', 'sensor.gas_storage_monitor_supply_beach_terminals'),
+                ('Norway (Langeled)', 'sensor.gas_storage_monitor_supply_norway_langeled'),
                 ('LNG', 'sensor.gas_storage_monitor_supply_lng'),
                 ('Storage', 'sensor.gas_storage_monitor_supply_storage'),
                 ('Interconnectors', 'sensor.gas_storage_monitor_supply_interconnectors')] %}
@@ -204,10 +204,10 @@ views:
           - type: statistics-graph
             title: Supply by source (GWh)
             entities:
-              - entity: sensor.gas_storage_monitor_supply_uk_north_sea
-                name: UK North Sea
-              - entity: sensor.gas_storage_monitor_supply_norway
-                name: Norway
+              - entity: sensor.gas_storage_monitor_supply_beach_terminals
+                name: Beach terminals
+              - entity: sensor.gas_storage_monitor_supply_norway_langeled
+                name: Norway (Langeled)
               - entity: sensor.gas_storage_monitor_supply_lng
                 name: LNG
               - entity: sensor.gas_storage_monitor_supply_storage
