@@ -117,7 +117,7 @@ Left column, top to bottom:
 | **vs normal temp** tile | Temperature vs normal | Negative = colder than usual |
 | **Rough** tile | Rough percent full | Only shown when Rough holds gas |
 | Badge next to "Supply yesterday" | Supply total | All gas put into the network on the previous gas day |
-| **Beach terminals**, **Norway (Langeled)**, **LNG**, **Storage** tiles | Supply sensors | Where that gas came from |
+| **Beach**, **Langeled**, **LNG**, **Storage** tiles | Supply sensors | Where that gas came from (Beach is Supply beach terminals; Langeled is Supply Norway (Langeled)) |
 | **Interconnectors** tile | Supply interconnectors | Only shown when gas is coming in through them |
 | Supply share table | Supply sensors | Each source's share of the day's supply. Beach terminals and Norway (Langeled) are close to flat all winter; LNG and storage cover the rise on cold days |
 | **Next 7 days** table | Demand forecast (`forecast` attribute) | Forecast demand per gas day next to the seasonal normal; a big gap above normal means a cold spell is expected |
